@@ -4,8 +4,8 @@
 :: 作者: LiBao Feng
 :: GitHub: https://github.com/Enthusiasm23/SystemCleanupTool.git
 :: 描述: 这个脚本用于清理系统中的临时文件和垃圾文件。
-:: 版本: 1.1
-:: 最后更新: 2024-02-26
+:: 版本: 1.0
+:: 最后更新: 2024-02-22
 :: 注意: 运行脚本前，请确保关闭可能干扰执行的系统保护软件，如杀毒程序或系统优化工具。
 :: ============================================================
 
@@ -39,6 +39,7 @@ call :ClearRecycled
 call :ClearFiles "%windir%\*.bak"
 call :ClearPrefetch
 call :ClearTemp
+call :ClearCookies
 call :ClearRecent
 call :ClearInternetTemp
 call :ClearSystemLogs
@@ -57,7 +58,7 @@ exit /b
 
 :ClearRecycled
 echo 正在清理回收站文件...
-del /f /s /q /a %systemdrive%\$Recycle.Bin\*.*
+del /f /s /q %systemdrive%\recycled\*.*
 exit /b
 
 :ClearPrefetch
@@ -70,9 +71,14 @@ echo 正在清理临时文件夹...
 rd /s /q %windir%\temp & md %windir%\temp
 exit /b
 
+:ClearCookies
+echo 正在清理 Cookies...
+del /f /q %userprofile%\cookies\*.*
+exit /b
+
 :ClearRecent
 echo 正在清理最近使用的文件列表...
-del /f /q %APPDATA%\Microsoft\Windows\Recent\*.*
+del /f /q %userprofile%\recent\*.*
 exit /b
 
 :ClearInternetTemp
