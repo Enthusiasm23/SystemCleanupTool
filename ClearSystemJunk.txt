@@ -4,8 +4,8 @@
 :: 作者: LiBao Feng
 :: GitHub: https://github.com/Enthusiasm23/SystemCleanupTool.git
 :: 描述: 这个脚本用于清理系统中的临时文件和垃圾文件。
-:: 版本: 1.1
-:: 最后更新: 2024-02-26
+:: 版本: 1.2
+:: 最后更新: 2024-03-27
 :: 注意: 运行脚本前，请确保关闭可能干扰执行的系统保护软件，如杀毒程序或系统优化工具。
 :: ============================================================
 
@@ -46,6 +46,7 @@ call :ClearErrorReports
 call :ClearWindowsUpdateCache
 call :ClearWindowsTempFiles
 call :ClearThumbnailCache
+call :ClearUserTemp
 
 echo 系统垃圾文件清理完成！
 exit /b
@@ -57,7 +58,33 @@ exit /b
 
 :ClearRecycled
 echo 正在清理回收站文件...
-del /f /s /q /a %systemdrive%\$Recycle.Bin\*.*
+
+:: 检查网络连接状态
+ping -n 1 www.baidu.com > nul 2>&1
+if %errorlevel% == 0 (
+    echo 网络连接正常，正在下载 NirCmd 工具...
+    bitsadmin /transfer "DownloadNirCmd" https://www.nirsoft.net/utils/nircmd.zip "%CD%\nircmd.zip" > nul 2>&1
+
+    if exist "%CD%\nircmd.zip" (
+        echo NirCmd 工具下载成功。
+        powershell -Command "Expand-Archive -Path '%CD%\nircmd.zip' -DestinationPath '%CD%'" -Force
+
+        echo 正在使用 NirCmd 清理回收站文件...
+        "%CD%\nircmd.exe" emptybin
+
+        echo 正在清理 NirCmd 临时文件...
+        del /q "%CD%\nircmd.zip"
+        del /q "%CD%\nircmd.exe"
+
+    ) else (
+        echo 下载 NirCmd 工具失败，请检查网络连接后重试。
+        exit /b
+    )
+) else (
+    echo 网络连接不可用，正在使用 rd 和 del 清理回收站文件...
+    rd /s /q C:\$Recycle.Bin
+    del /f /s /q /a %systemdrive%\$Recycle.Bin\*.*
+)
 exit /b
 
 :ClearPrefetch
@@ -106,4 +133,9 @@ exit /b
 :ClearThumbnailCache
 echo 正在清理缩略图缓存...
 del /f /q /s %userprofile%\AppData\Local\Microsoft\Windows\Explorer\thumbcache_*.db
+exit /b
+
+:ClearUserTemp
+echo 正在清理个人用户的临时文件夹...
+rd /s /q "%userprofile%\AppData\Local\Temp" & md "%userprofile%\AppData\Local\Temp"
 exit /b
